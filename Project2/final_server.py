@@ -3,7 +3,7 @@ import os
 import sys
 import threading
 
-server_ip = "192.168.56.1"
+server_ip = "10.1.150.174"
 server_port = 6789
 stats_file = "login_stats.txt"
 
@@ -91,24 +91,17 @@ def stats_page(success, fail):
     </html>
     """
 
-def error_page(msg="Invalid credentials"):
+def error_page():
     return f"""
     <html>
       <head><title>Login Error</title></head>
       <body>
-        <h2>{msg}</h2>
+        <h2>Invalid credentials</h2>
         <a href="/login">Try again</a>
       </body>
     </html>
     """
-
-def print_help():
-    help_text = """
-Server command line help:
- - exit : Close all open sockets and exit the server program.
- - help : Show this help message.
-"""
-    print(help_text.strip())
+    
 
 def cli_listener(stop_event):
     while not stop_event.is_set():
@@ -117,7 +110,11 @@ def cli_listener(stop_event):
             print("Exiting server...")
             stop_event.set()
         elif cmd == "help":
-            print_help()
+            print("""
+Server command line help:
+ Exit : Close all open sockets and exit the server program.
+ Help : Show this help message.
+""")
         elif cmd:
             print(f"{cmd}: Command Not Found")
 
@@ -127,7 +124,11 @@ server_socket.bind((server_ip, server_port))
 server_socket.listen(1)
 
 print(f"Listening on {server_ip}:{server_port}...")
-print_help()
+print("""
+Server command line help:
+ Exit : Close all open sockets and exit the server program.
+ Help : Show this help message.
+""")
 
 stop_event = threading.Event()
 cli_thread = threading.Thread(target=cli_listener, args=(stop_event,))
