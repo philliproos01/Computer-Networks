@@ -1,0 +1,37 @@
+from socket import *
+import sys
+import mimetypes
+
+serverSocket = socket(AF_INET, SOCK_STREAM)
+serverPort = 6789
+serverSocket.bind(("", serverPort))
+serverSocket.listen(1)
+
+while True:
+    print('The server is ready to receive')
+    connectionSocket, addr = serverSocket.accept()
+    try:
+        message = connectionSocket.recv(1024).decode()
+        filename = message.split()[1]
+        # Remove leading slash and open the file in binary mode
+        with open(filename[1:], 'rb') as f:
+            outputdata = f.read()
+
+        # Guess the mime type to send correct Content-Type
+        mime_type, _ = mimetypes.guess_type(filename[1:])
+        if mime_type is None:
+            mime_type = "application/octet-stream"
+
+        header = f"HTTP/1.1 200 OK\r\nContent-Type: {mime_type}\r\n\r\n"
+        connectionSocket.send(header.encode())
+        connectionSocket.sendall(outputdata)
+        connectionSocket.close()
+    except IOError:
+        header = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n"
+        body = "<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n"
+        connectionSocket.send(header.encode())
+        connectionSocket.send(body.encode())
+        connectionSocket.close()
+
+serverSocket.close()
+sys.exit()
